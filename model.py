@@ -19,6 +19,7 @@ from langchain.chains.question_answering import load_qa_chain
 import transformers
 import torch
 import pinecone
+import sys
 
 # 03: Embeddings 模型 384維度 
 embeddings=HuggingFaceEmbeddings(model_name=Embeddings_ID)
@@ -47,10 +48,21 @@ pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_API_ENV,openapi_con
 
 # 06: 搜尋 pinecone 向量資料庫, 列出前三名
 docsearch=Pinecone.from_existing_index(index_name, embeddings)
-query = "What are Allergies"
-docs=docsearch.similarity_search(query, k=3)
+#query = "What are Allergies"
+#docs=docsearch.similarity_search(query, k=3)
 
 # 07. LLM彙整
 chain = load_qa_chain(llm, chain_type="stuff")
-result=chain.run(input_documents=docs, question=query)
-print(result)
+#result=chain.run(input_documents=docs, question=query)
+#print(result)
+
+# 08. 自動對話
+while True:
+    user_input=input(f"Input Prompt:")
+    if user_input=='exit':
+        print('Exiting')
+        sys.exit()
+    if user_input=='':
+        continue
+    result=chain.run(input_documents=docsearch.similarity_search(user_input, k=3), question=user_input)
+    print(result)
